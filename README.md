@@ -1,4 +1,4 @@
-# clean-it.sh - Pre-Backup Cleanup for OpenClaw
+# clean-it.sh - Cleanup for OpenClaw
 
 Combined safe cleanup script for Ubuntu Server (headless VM) + OpenClaw.
 
