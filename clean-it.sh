@@ -6,13 +6,17 @@
 set -o pipefail
 
 # ================== CONFIG ==================
-OPENCLAW_USER="user_name"                 # adjust to your main OpenClaw user (e.g. cleotine)
-OPENCLAW_HOME="/home/${OPENCLAW_USER}/.openclaw"
-LOGFILE="/var/log/clean-it.log"
-DRY_RUN=false                             # set to true for testing only
-DAYS_SESSION=0                            # delete old sessions after X days
-DAYS_LOG=0                                # delete old logs after X days
-DAYS_TMP=0                                # delete temp files after X days
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="${SCRIPT_DIR}/config.ini"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "ERROR: Config file not found: ${CONFIG_FILE}"
+    echo "       Copy config.example.ini to config.ini and adjust the values."
+    exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$CONFIG_FILE"
 # ===========================================
 
 log() {

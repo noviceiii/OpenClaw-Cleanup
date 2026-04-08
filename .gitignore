@@ -1,0 +1,9 @@
+# Ignore the real config file to keep private settings out of version control.
+config.ini
+
+# Common OS / editor artefacts
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
