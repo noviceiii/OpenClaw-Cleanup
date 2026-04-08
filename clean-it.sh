@@ -68,7 +68,44 @@ else
     log "WARNING: OpenClaw home directory or user not found - skipping OpenClaw cleanup"
 fi
 
-# 3. Final status
+# 3. Time synchronisation
+# The @reboot entry delays the restart by 25 seconds to allow network interfaces
+# to come up fully before systemd-timesyncd attempts to contact NTP servers.
+TIME_SYNC_CMD="@reboot sleep 25 && systemctl restart systemd-timesyncd"
+
+log "Time: Checking systemd-timesyncd installation"
+if ! dpkg-query -W -f='${Status}' systemd-timesyncd 2>/dev/null | grep -q "install ok installed"; then
+    read -r -p "systemd-timesyncd is not installed. Install it now? [y/N] " install_answer
+    if [[ "${install_answer,,}" == "y" ]]; then
+        log "Time: Installing systemd-timesyncd"
+        apt-get install -y systemd-timesyncd
+        systemctl enable --now systemd-timesyncd
+        log "Time: systemd-timesyncd installed and enabled"
+    else
+        log "Time: Skipping systemd-timesyncd installation"
+    fi
+else
+    log "Time: systemd-timesyncd is already installed"
+fi
+
+log "Time: Checking root crontab for time-sync entry"
+if crontab -l 2>/dev/null | grep -qF "${TIME_SYNC_CMD}"; then
+    log "Time: Time-sync crontab entry already present – no changes needed"
+else
+    log "Time: No time-sync crontab entry found"
+    read -r -p "Add '@reboot' time-sync entry to root crontab? [y/N] " cron_answer
+    if [[ "${cron_answer,,}" == "y" ]]; then
+        if ( crontab -l 2>/dev/null; echo "${TIME_SYNC_CMD}" ) | crontab -; then
+            log "Time: Added '${TIME_SYNC_CMD}' to root crontab"
+        else
+            log "WARNING: Failed to update root crontab – please add the entry manually: ${TIME_SYNC_CMD}"
+        fi
+    else
+        log "Time: Skipping crontab update"
+    fi
+fi
+
+# 4. Final status
 log "Cleanup finished. Current disk usage:"
 df -h / | tee -a "$LOGFILE"
 
